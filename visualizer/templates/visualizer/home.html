@@ -145,6 +145,10 @@
     }
 
     function update_size(){
+        if(run) {
+            start();
+        }
+        
         fetch(`{{ 'updatesize/${slider.value}' }}`)
         .then(response => response.json())
         .then(data => {
