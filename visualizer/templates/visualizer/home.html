@@ -1,0 +1,331 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorting Visualizer</title>
+    <link rel="stylesheet" href={% static 'visualizer/style.css' %}>
+    <link rel="icon" href="{% static 'visualizer/flaticon.png' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com"> 
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> 
+</head>
+<body>
+    <nav id="menu" class="nav">
+        <header class="nav-element">
+            <h1>Sorting Visualizer</h1>
+        </header>
+        
+        <div class="nav-element text-underline-container">
+            <a onclick="generate()" class="nav-element" style="cursor: pointer; user-select: none;">Generate New Array</a>
+            <div class="text-underline"></div>
+        </div>
+        <div class="custom-select nav-element text-underline-container">
+            <select id="select" style="background-image: url('{% static "visualizer/down_arrow2.png" %}');">
+                <option value="0" selected>Bubble Sort</option>
+                <option value="1">Quick Sort</option>
+                <option value="2">Merge Sort</option>
+                <option value="3">Insertion Sort</option>
+                <option value="4">Selection Sort</option>
+            </select>
+            <div class="text-underline"></div>
+        </div>
+        <div class="slider nav-element">
+            <span>Array size</span>             
+            <input oninput='update_size()' type="range" min='20' max='100' value='60' id='slider'>
+        </div>
+
+        <a id="sort" onclick="start()" class="nav-element" style="cursor: pointer; user-select: none;">Sort!</a>
+        <a onclick="hamburger()" href ="javascript:void(0);" class="icon">
+            <img src={% static 'visualizer/nav_menu.png' %} alt="hamburger menu">
+        </a>
+        
+    </nav>
+    <section id="bars" class="bars">
+    </section>
+    
+</body>
+<script>
+
+
+    let select = document.getElementById('select');
+    let selected;
+    let slider = document.getElementById('slider');
+    let bars = document.getElementById('bars');
+    let arr;
+    let run = false;
+    let btn = document.getElementById('sort');
+    let finished = false;
+    
+    select.onchange = function() {
+
+        selected = select.options[select.selectedIndex];
+        switch (selected.value) {
+            case '0':
+                select.style.paddingRight = '0';
+                break;
+            case '1':
+                select.style.paddingRight = '0';
+                break;
+            case '2':
+                select.style.paddingRight = '0';
+                break;
+            case '3':
+                select.style.paddingRight = '20px';
+                break;
+            case '4':
+                select.style.paddingRight = '25px';
+                break;
+        }
+    }
+
+    function start() {
+        if(finished) {
+            finished = false;
+            update_size();
+        }
+        setTimeout(() => {
+            if(btn.innerHTML === 'Sort!') {
+                run = true;
+                btn.innerHTML = 'Stop';
+                btn.style.color = 'white';
+                btn.style.borderColor = 'crimson';
+                btn.style.backgroundColor = 'crimson';
+    
+                btn.onmouseenter = () => {
+                    btn.style.backgroundColor = 'crimson';
+                    btn.style.color = 'white';
+    
+                }
+                btn.onmouseout = () => {
+                    btn.style.backgroundColor = '#e7f4fd';
+                    btn.style.color = 'crimson';
+                }
+        
+                selected = select.options[select.selectedIndex];
+                switch (selected.value) {
+                    case '0':
+                        bubble_sort();
+                        break;
+                    case '1':
+                        quick_sort();
+                        break;
+                    case '2':
+                        merge_sort();
+                        break;
+                    case '3':
+                        insertion_sort();
+                        break;
+                    case '4':
+                        selection_sort();
+                        break;
+                }
+    
+            } else {
+                run = false;
+                btn.innerHTML = 'Sort!';
+                btn.style.color = 'white';
+                btn.style.borderColor = '#4983cc';
+                btn.style.backgroundColor = '#4983cc'
+                generate();
+    
+                btn.onmouseenter = () => {
+                    btn.style.backgroundColor = '#4983cc';
+                    btn.style.color = 'white';
+    
+                }
+                btn.onmouseout = () => {
+                    btn.style.backgroundColor = '#e7f4fd';
+                    btn.style.color = '#4983cc';
+                }
+            }
+        }, 100);
+        
+    }
+
+    function update_size(){
+        fetch(`{{ 'updatesize/${slider.value}' }}`)
+        .then(response => response.json())
+        .then(data => {
+            bars.innerHTML = '';
+            data.forEach(i => bars.innerHTML += `<div class="bar" style="height: ${i}px;"></div>`);
+            arr = data;
+            }
+        );
+        
+    }
+
+    function generate(){
+        finished = false;
+        if(run) {
+            run = false;
+            btn.innerHTML = 'Sort!';
+            btn.style.color = 'white';
+            btn.style.borderColor = '#4983cc';
+            btn.style.backgroundColor = '#4983cc'
+
+            btn.onmouseenter = () => {
+                btn.style.backgroundColor = '#4983cc';
+                btn.style.color = 'white';
+
+            }
+            btn.onmouseout = () => {
+                btn.style.backgroundColor = '#e7f4fd';
+                btn.style.color = '#4983cc';
+            }
+        }
+        update_size();
+    }
+    let delay = 5;
+
+    function bubble_sort() {
+        fetch("{{ 'bubblesort/' }}")
+        .then(response => response.json())
+        .then(data => sort_helper(data))
+        .catch(error => {
+            bars.innerHTML = `Error: ${error}`;
+            console.error('There was an error!', error);
+        });
+    }
+
+    function quick_sort() {
+        fetch("{{ 'quicksort/' }}")
+        .then(response => response.json())
+        .then(data => sort_helper(data))
+        .catch(error => {
+            bars.innerHTML = `Error: ${error}`;
+            console.error('There was an error!', error);
+        });
+    }
+
+    function merge_sort() {
+        fetch("{{ 'mergesort/' }}")
+        .then(response => response.json())
+        .then(data => sort_helper(data))
+        .catch(error => {
+            bars.innerHTML = `Error: ${error}`;
+            console.error('There was an error!', error);
+        });
+    }
+
+    function selection_sort() {
+        fetch("{{ 'selectionsort/' }}")
+        .then(response => response.json())
+        .then(data => sort_helper(data))
+        .catch(error => {
+            bars.innerHTML = `Error: ${error}`;
+            console.error('There was an error!', error);
+        });
+    }
+
+    function insertion_sort() {
+        fetch("{{ 'insertionsort/' }}")
+        .then(response => response.json())
+        .then(data => sort_helper(data))
+        .catch(error => {
+            bars.innerHTML = `Error: ${error}`;
+            console.error('There was an error!', error);
+        });
+    }
+
+    async function sort_helper(data) {
+
+        for(let i=0; i<data.length; i++) {
+            bars = document.getElementById('bars');
+
+            if(!run) {
+                break;
+            }
+            let current = data[i];
+
+                if(current.length === 1) {
+                    
+                    bars.children.item(current[0]).style.backgroundColor = 'red';
+                    await changeColor(current, 0);
+
+                } else {
+                    
+                    bars.children.item(current[0]).style.backgroundColor = 'red';
+                    bars.children.item(current[1]).style.backgroundColor = 'red';           
+            
+                    await swap(current);
+
+                    await changeColor(current, 0);
+                    await changeColor(current, 1);
+                    
+
+                }
+        }
+
+        for(let i=0; i<bars.children.length; i++) {
+            if(!run){
+                break;
+            }
+            await colorFinish(i);
+        }
+
+        run = false;
+        btn.innerHTML = 'Sort!';
+        btn.style.color = '#4983cc';
+        btn.style.borderColor = '#4983cc';
+        btn.style.backgroundColor = '#e7f4fd'
+
+        btn.onmouseenter = () => {
+            btn.style.backgroundColor = '#4983cc';
+            btn.style.color = 'white';
+
+        }
+        btn.onmouseout = () => {
+            btn.style.backgroundColor = '#e7f4fd';
+            btn.style.color = '#4983cc';
+        }
+
+        finished = true;
+
+    }
+
+    function swap(current){
+        let temp;
+        return new Promise((resolve) => {
+
+            setTimeout(() => {
+                temp = bars.children.item(current[0]).style.height;
+                bars.children.item(current[0]).style.height = bars.children.item(current[1]).style.height;
+                bars.children.item(current[1]).style.height = temp;
+                resolve();
+            }, delay);
+        });
+    }
+
+    function changeColor(current, n) {
+        return new Promise(resolve => {
+            setTimeout(() => {
+                bars.children.item(current[n]).style.backgroundColor = 'white';
+                resolve();
+            }, delay);
+        });    
+    }
+
+    function colorFinish(i) {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                bars.children.item(i).style.backgroundColor = '#1FB93C';
+                resolve();
+            }, delay*5);
+        });  
+    }
+
+    function hamburger() {
+        let x = document.getElementById('menu');
+
+        if(x.className === "nav") {
+            x.className += " responsive";
+        } else {
+            x.className = "nav";
+        }
+    }
+
+    update_size();
+</script>
+</html>
