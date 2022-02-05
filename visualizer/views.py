@@ -70,7 +70,7 @@ def partition(arr, low, high):
 def mergesort(request):
     global transitions
     transitions = []
-    merge_sort(arr, 0)
+    merge_sort(arr, 0, len(arr)-1)
     print(transitions)
     return HttpResponse([transitions])
 
